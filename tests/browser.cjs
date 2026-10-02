@@ -10,6 +10,78 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
 for (const chartPackage of ['chart.js', 'chartjs-current']) {
   for (const artifact of [pkg.main, pkg.unpkg]) {
+    test(`${chartPackage} / ${path.basename(artifact)}: hover replay teardown`, {timeout: 30000}, async () => {
+      const browser = await chromium.launch({headless: true,
+        executablePath: process.env.STREAMING_BROWSER_EXECUTABLE || undefined});
+      try {
+        const page = await browser.newPage();
+        const errors = [];
+        page.on('pageerror', error => errors.push(error.message));
+        await page.route('**/*', route => route.abort());
+        await page.clock.install({time: new Date('2024-01-02T12:00:00Z')});
+        await page.clock.pauseAt(new Date('2024-01-02T12:00:01Z'));
+        await page.setContent('<canvas id="chart" width="900" height="500"></canvas>');
+        for (const file of [`node_modules/${chartPackage}/dist/chart.umd.js`,
+          'node_modules/luxon/build/global/luxon.min.js',
+          'node_modules/chartjs-adapter-luxon/dist/chartjs-adapter-luxon.umd.js', artifact]) {
+          await page.addScriptTag({content: read(file)});
+        }
+        for (const destroyIn of ['render', 'queued']) {
+          await page.evaluate(destroyIn => {
+            window.probe = {events: 0, lateEvents: 0, armed: false, destroyed: false};
+            window.chart = new Chart(document.getElementById('chart'), {
+              type: 'line', data: {datasets: [{data: [{x: Date.now(), y: 1}]}]},
+              options: {responsive: false, animation: false,
+                scales: {x: {type: 'realtime', realtime: {refresh: 10000}}}},
+              plugins: [{id: 'hoverTeardownProbe', afterRender: instance => {
+                if (!probe.armed) return;
+                probe.armed = false;
+                const destroy = () => { instance.destroy(); probe.destroyed = true; };
+                if (destroyIn === 'render') destroy();
+                // Runs after streaming.render has queued its replay, but before the replay fires.
+                else setTimeout(destroy, 0);
+              }}]
+            });
+            const handle = chart._eventHandler;
+            chart._eventHandler = function(...args) {
+              probe.events++;
+              if (probe.destroyed) probe.lateEvents++;
+              return handle.apply(this, args);
+            };
+          }, destroyIn);
+          await page.clock.runFor(50);
+          await page.evaluate(() => {
+            const canvas = chart.canvas;
+            const box = canvas.getBoundingClientRect();
+            // The plugin's native mouse listener records a hover position for frame replays.
+            canvas.dispatchEvent(new MouseEvent('mousedown', {clientX: box.left + 450, clientY: box.top + 200}));
+          });
+          await page.clock.runFor(100);
+          assert.ok(await page.evaluate(() => probe.events > 0), 'live hover replay must remain functional');
+          await page.evaluate(() => chart.canvas.dispatchEvent(new MouseEvent('mouseout')));
+          await page.clock.runFor(100);
+          const outside = await page.evaluate(() => probe.events);
+          await page.clock.runFor(100);
+          assert.equal(await page.evaluate(() => probe.events), outside, 'mouseout must stop hover replay');
+          await page.evaluate(() => {
+            const box = chart.canvas.getBoundingClientRect();
+            chart.canvas.dispatchEvent(new MouseEvent('mousedown', {clientX: box.left + 500, clientY: box.top + 200}));
+          });
+          await page.clock.runFor(100);
+          assert.ok(await page.evaluate(count => probe.events > count, outside), 'hover must work after re-entry');
+          await page.evaluate(() => { probe.armed = true; });
+          await page.clock.runFor(100);
+          assert.deepEqual(await page.evaluate(() => ({destroyed: probe.destroyed, lateEvents: probe.lateEvents})),
+            {destroyed: true, lateEvents: 0}, `${destroyIn}: no event handling after destruction`);
+          assert.deepEqual(errors, [], destroyIn);
+          const count = await page.evaluate(() => probe.events);
+          await page.clock.runFor(1000);
+          assert.equal(await page.evaluate(() => probe.events), count);
+        }
+      } finally {
+        await browser.close();
+      }
+    });
     test(`${chartPackage} / ${path.basename(artifact)}: quiet update recovery`, {timeout: 30000}, async () => {
       const browser = await chromium.launch({headless: true,
         executablePath: process.env.STREAMING_BROWSER_EXECUTABLE || undefined});

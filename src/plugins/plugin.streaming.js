@@ -83,10 +83,12 @@ function render(chart) {
 
   chart.render();
 
-  if (streaming.lastMouseEvent) {
-    setTimeout(() => {
+  // Rendering hooks may destroy the chart. Keep at most one pending hover replay.
+  if (chart.canvas && streaming.lastMouseEvent && streaming.mouseEventTimerID === undefined) {
+    streaming.mouseEventTimerID = setTimeout(() => {
+      delete streaming.mouseEventTimerID;
       const lastMouseEvent = streaming.lastMouseEvent;
-      if (lastMouseEvent) {
+      if (chart.canvas && lastMouseEvent) {
         chart._eventHandler(lastMouseEvent);
       }
     }, 0);
@@ -226,6 +228,10 @@ export default {
   afterDestroy(chart) {
     const {scales, $streaming: streaming, tooltip} = chart;
     const {canvas, mouseEventListener} = streaming;
+
+    clearTimeout(streaming.mouseEventTimerID);
+    delete streaming.mouseEventTimerID;
+    delete streaming.lastMouseEvent;
 
     delete chart.update;
     if (tooltip) {

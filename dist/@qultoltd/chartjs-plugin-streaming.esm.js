@@ -843,10 +843,11 @@ function update(mode) {
 function render(chart) {
   const streaming = chart.$streaming;
   chart.render();
-  if (streaming.lastMouseEvent) {
-    setTimeout(() => {
+  if (chart.canvas && streaming.lastMouseEvent && streaming.mouseEventTimerID === undefined) {
+    streaming.mouseEventTimerID = setTimeout(() => {
+      delete streaming.mouseEventTimerID;
       const lastMouseEvent = streaming.lastMouseEvent;
-      if (lastMouseEvent) {
+      if (chart.canvas && lastMouseEvent) {
         chart._eventHandler(lastMouseEvent);
       }
     }, 0);
@@ -959,6 +960,9 @@ var StreamingPlugin = {
   afterDestroy(chart) {
     const {scales, $streaming: streaming, tooltip} = chart;
     const {canvas, mouseEventListener} = streaming;
+    clearTimeout(streaming.mouseEventTimerID);
+    delete streaming.mouseEventTimerID;
+    delete streaming.lastMouseEvent;
     delete chart.update;
     if (tooltip) {
       delete tooltip.update;

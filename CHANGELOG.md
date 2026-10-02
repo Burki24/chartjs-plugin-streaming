@@ -17,6 +17,8 @@
 - Stop refresh processing when `onRefresh` destroys its chart.
 - Restore temporary controller methods after failed, cancelled or nested quiet
   updates while preserving pre-existing method descriptors.
+- Cancel pending hover replays when a chart is destroyed, including destruction
+  from rendering callbacks, without accessing the disposed chart afterward.
 
 This section describes unpublished fork work since the qultoltd 3.1.0 baseline.
 It does not replace or relabel upstream tags or releases.
