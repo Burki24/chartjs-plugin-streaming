@@ -5,9 +5,21 @@ const {test} = require('node:test');
 const {chromium} = require('playwright');
 const {openPage, createChart} = require('./jslive-harness.cjs');
 const pkg = require('../package.json');
+const {installTimerProbe, checkScaleReplacement} = require('./scale-replacement.cjs');
 
 for (const timezone of ['UTC', 'Europe/Berlin']) {
   for (const artifact of [pkg.main, pkg.unpkg]) {
+    test(`JSLive / ${timezone} / ${path.basename(artifact)}: realtime scale replacement`, {timeout: 30000}, async () => {
+      const browser = await chromium.launch({headless: true,
+        executablePath: process.env.STREAMING_BROWSER_EXECUTABLE || undefined});
+      try {
+        const {page, errors} = await openPage(browser, {artifact, timezone, clock: true, beforeScripts: installTimerProbe});
+        await checkScaleReplacement(page);
+        assert.deepEqual(errors, []);
+      } finally {
+        await browser.close();
+      }
+    });
     test(`JSLive / ${timezone} / ${path.basename(artifact)}: Moment, labels and lifecycle`, {timeout: 30000}, async () => {
       const browser = await chromium.launch({headless: true,
         executablePath: process.env.STREAMING_BROWSER_EXECUTABLE || undefined});

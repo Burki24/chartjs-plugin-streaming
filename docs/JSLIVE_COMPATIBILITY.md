@@ -98,16 +98,32 @@ IPSView/WebView devices, all chart options and long-duration/background tests.
 The fixture neither loads the complete JSLive template nor simulates its PHP
 backend. No inference of complete compatibility follows from these tests.
 
-## Separate finding: in-place scale replacement
+## Follow-up: in-place scale replacement
 
 An additional exploratory test replaced `options.scales.x` from `realtime` to
 `time` on the same Chart instance, then destroyed it. The 3.4.0 candidate kept
 an old realtime callback alive and attempted to draw after destruction
 (`Cannot read properties of null (reading 'save')`). This is outside JSLive's
-destroy/recreate period-switch path, which passes. It is an open standalone
-plugin limitation, not fixed or claimed supported by this checkpoint.
+destroy/recreate period-switch path, which passes. The 3.4.0 checkpoint above
+records this historical limitation; its measurements have not been overwritten.
 
 Reproduction: create a realtime chart; let refresh start; replace
 `chart.options.scales.x` with a normal time scale; call `chart.update()`;
-call `chart.destroy()` and advance the clock. Track a separate runtime fix
-and regression test if this transition is to be supported.
+call `chart.destroy()` and advance the clock.
+
+The follow-up fix after the 3.5.0 metadata baseline snapshots the actual scale
+instances before each update and destroys removed/replaced realtime scales in
+the update's `finally` block. Chart.js removes them from `chart.scales` without
+calling their cleanup; inspecting only the current scales at chart destruction
+was too late. No new Chart.js override, plugin API or configuration is introduced.
+
+`tests/scale-replacement.cjs` checks the fix through both browser suites: eight
+cases across Chart.js 4.1.1/4.5.1 with Luxon, and the JSLive Moment stack in
+UTC/Berlin, always with both UMD bundles. Each case exercises successful,
+cancelled, throwing and nested updates, a change from `onRefresh`, complete
+axis removal, repeated realtime/time round trips, a surviving second realtime
+axis and final chart destruction. Interval and frame counts are checked
+immediately after replacement, and no retired callback may run afterward.
+The tests failed on the unmodified 3.5.0 bundle with two live intervals instead
+of one. Hosted CI for the fix remains a post-push gate. The earlier 3.4.0 soak
+report is historical evidence, not a newly executed performance test of this fix.

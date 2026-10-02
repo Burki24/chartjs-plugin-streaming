@@ -13,7 +13,7 @@ const files = [
 const read = file => fs.readFileSync(file, 'utf8');
 const hash = file => createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 
-async function openPage(browser, {artifact = pkg.unpkg, timezone = 'Europe/Berlin', clock = false, jsliveRoot} = {}) {
+async function openPage(browser, {artifact = pkg.unpkg, timezone = 'Europe/Berlin', clock = false, jsliveRoot, beforeScripts} = {}) {
   const context = await browser.newContext({viewport: {width: 1024, height: 768}, timezoneId: timezone});
   await context.route('**/*', route => route.abort());
   const page = await context.newPage();
@@ -25,6 +25,7 @@ async function openPage(browser, {artifact = pkg.unpkg, timezone = 'Europe/Berli
     await page.clock.pauseAt(new Date('2024-01-02T12:00:01Z'));
   }
   await page.setContent('<canvas id="chart" width="900" height="500"></canvas>');
+  if (beforeScripts) await beforeScripts(page);
   for (const [installed, vendored] of files) {
     await page.addScriptTag({content: read(jsliveRoot ? path.join(jsliveRoot, vendored) : path.join(root, installed))});
   }

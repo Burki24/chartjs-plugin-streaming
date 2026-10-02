@@ -5,11 +5,35 @@ const path = require('node:path');
 const {test} = require('node:test');
 const {chromium} = require('playwright');
 const pkg = require('../package.json');
+const {installTimerProbe, checkScaleReplacement} = require('./scale-replacement.cjs');
 const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
 for (const chartPackage of ['chart.js', 'chartjs-current']) {
   for (const artifact of [pkg.main, pkg.unpkg]) {
+    test(`${chartPackage} / ${path.basename(artifact)}: realtime scale replacement`, {timeout: 30000}, async () => {
+      const browser = await chromium.launch({headless: true,
+        executablePath: process.env.STREAMING_BROWSER_EXECUTABLE || undefined});
+      try {
+        const page = await browser.newPage();
+        const errors = [];
+        page.on('pageerror', error => errors.push(error.message));
+        await page.route('**/*', route => route.abort());
+        await page.clock.install({time: new Date('2024-01-02T12:00:00Z')});
+        await page.clock.pauseAt(new Date('2024-01-02T12:00:01Z'));
+        await page.setContent('<canvas id="chart" width="900" height="500"></canvas>');
+        await installTimerProbe(page);
+        for (const file of [`node_modules/${chartPackage}/dist/chart.umd.js`,
+          'node_modules/luxon/build/global/luxon.min.js',
+          'node_modules/chartjs-adapter-luxon/dist/chartjs-adapter-luxon.umd.js', artifact]) {
+          await page.addScriptTag({content: read(file)});
+        }
+        await checkScaleReplacement(page);
+        assert.deepEqual(errors, []);
+      } finally {
+        await browser.close();
+      }
+    });
     test(`${chartPackage} / ${path.basename(artifact)}: active points survive data cleanup`, {timeout: 30000}, async () => {
       const browser = await chromium.launch({headless: true,
         executablePath: process.env.STREAMING_BROWSER_EXECUTABLE || undefined});

@@ -837,10 +837,18 @@ function restoreMethod(controller, methods, key) {
     methods.delete(key);
   }
 }
+function destroyRemovedScales(chart, previousScales) {
+  helpers.each(previousScales, (scale, id) => {
+    if (scale instanceof RealTimeScale && chart.scales[id] !== scale) {
+      scale.destroy();
+    }
+  });
+}
 function update(mode) {
   const me = this;
   const previous = updateOverrides.get(me);
   const overrides = new Map();
+  const previousScales = {...me.scales};
   updateOverrides.set(me, overrides);
   try {
     if (mode === 'quiet') {
@@ -861,6 +869,7 @@ function update(mode) {
     } else {
       updateOverrides.delete(me);
     }
+    destroyRemovedScales(me, previousScales);
   }
 }
 function render(chart) {

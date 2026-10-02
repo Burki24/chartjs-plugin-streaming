@@ -45,10 +45,20 @@ function restoreMethod(controller, methods, key) {
   }
 }
 
+function destroyRemovedScales(chart, previousScales) {
+  each(previousScales, (scale, id) => {
+    if (scale instanceof RealTimeScale && chart.scales[id] !== scale) {
+      scale.destroy();
+    }
+  });
+}
+
 function update(mode) {
   const me = this;
   const previous = updateOverrides.get(me);
   const overrides = new Map();
+  // Chart.js replaces/removes scales without invoking their destroy methods.
+  const previousScales = {...me.scales};
 
   // Keep each update's overrides isolated, including nested updates from hooks.
   updateOverrides.set(me, overrides);
@@ -75,6 +85,7 @@ function update(mode) {
     } else {
       updateOverrides.delete(me);
     }
+    destroyRemovedScales(me, previousScales);
   }
 }
 

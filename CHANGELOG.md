@@ -17,6 +17,10 @@
 
 ### Fixed
 
+- Stop realtime scale timers when Chart.js replaces or removes their scale,
+  including cancelled, failed and nested updates and replacement from a refresh
+  callback. Preserve surviving scales and repeated transitions back to realtime.
+
 - Prevent stopped or replaced streaming timers from restarting after callbacks.
 - Stop refresh processing when `onRefresh` destroys its chart.
 - Restore temporary controller methods after failed, cancelled or nested quiet
