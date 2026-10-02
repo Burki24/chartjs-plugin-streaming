@@ -1,9 +1,15 @@
-const BRANCH = process.env.BRANCH || (process.env.NODE_ENV === 'development' ? 'local' : '');
-const IS_DEV = BRANCH ? !BRANCH.match(/^v\d\.\d\.\d/) : false;
-const DOCS_VERSION = "VERSION";
-const BASE = IS_DEV ? '/chartjs-plugin-streaming/master/' : `/chartjs-plugin-streaming/${DOCS_VERSION}/`;
-const REPO_NAME = 'nagix/chartjs-plugin-streaming';
+// This unpublished fork has one development site, not npm-versioned documentation.
+const BASE = '/chartjs-plugin-streaming/';
+const REPO_NAME = 'Burki24/chartjs-plugin-streaming';
 const REPO_URL = `https://github.com/${REPO_NAME}`;
+const developmentMenu = locale => ({
+  text: 'Development (dev)',
+  items: [
+    {text: 'Documentation', link: `${locale}guide/`},
+    {text: 'Source (dev)', link: `${REPO_URL}/tree/dev`},
+    {text: 'Releases', link: `${REPO_URL}/releases`}
+  ]
+});
 
 module.exports = {
   dest: 'dist/docs',
@@ -28,9 +34,6 @@ module.exports = {
     ['@vuepress/html-redirect', {
       countdown: 0
     }],
-    ['@vuepress/google-analytics', {
-      ga: 'UA-39988758-2'
-    }],
     ['redirect', {
       redirectors: [
         {base: '/tutorials', alternative: ['plainjs/scripts']},
@@ -38,53 +41,30 @@ module.exports = {
         {base: '/ja/tutorials', alternative: ['plainjs/scripts']},
         {base: '/ja/samples', alternative: ['charts/line-horizontal']}
       ]
-    }],
-    ['@simonbrunel/vuepress-plugin-versions', {
-      filters: {
-        suffix: (tag) => tag ? ` (${tag})` : '',
-        title: (v, vars) => window.location.href.includes('master') ? 'Development (master)' : v + (vars.tag ? ` (${tag})` : ''),
-        link: (v, vars) => vars.prerelease ? 'next' : v
-      },
-      menu: {
-        text: '{{version|title}}',
-        items: [
-          {
-            text: 'Documentation',
-            items: [
-              {
-                text: 'Development (master)',
-                target: '_self',
-                link: '/chartjs-plugin-streaming/master/'
-              },
-              {
-                type: 'versions',
-                text: '{{version}}{{tag|suffix}}',
-                target: '_self',
-                link: '/chartjs-plugin-streaming/{{version|link}}/',
-                exclude: /^0\.|1\.[0-8]\./,
-                group: 'minor'
-              }
-            ]
-          },
-          {
-            text: 'Release notes (5 latest)',
-            items: [
-              {
-                type: 'versions',
-                limit: 5,
-                group: 'patch',
-                link: `${REPO_URL}/releases/tag/v{{version}}`
-              }
-            ]
-          }
-        ]
-      }
     }]
   ],
   chainWebpack: (config) => {
+    // Terser 1's optional disk cache still hashes with native MD4. Keep
+    // minification enabled, but disable this cache on the Node 24 toolchain.
+    config.optimization.minimizer('terser')
+      .use(require('terser-webpack-plugin'), [{cache: false, parallel: 2}]);
+    // Webpack 4 cannot parse Chart.js 4 class fields. Transpile only this
+    // dependency for the documentation bundle; shipped plugin files stay intact.
+    config.module.rule('chartjs')
+      .test(/\.js$/)
+      .include.add(/node_modules[\\/]chart\.js[\\/]/).end()
+      .use('babel-loader')
+      .loader(require.resolve('babel-loader'))
+      .options({
+        babelrc: false,
+        configFile: false,
+        presets: [[require.resolve('@babel/preset-env'), {targets: {chrome: '64'}, modules: false}]]
+      });
     config.merge({
       resolve: {
         alias: {
+          // Webpack 4 does not resolve this package's exports-only entry point.
+          'chartjs-adapter-luxon$': require.resolve('chartjs-adapter-luxon'),
           // Hammerjs requires window, using ng-hammerjs instead
           'hammerjs': 'ng-hammerjs'
         }
@@ -94,6 +74,7 @@ module.exports = {
   themeConfig: {
     repo: REPO_NAME,
     docsDir: 'docs',
+    docsBranch: 'dev',
     editLinks: true,
     logo: '/logo.png',
     searchPlaceholder: 'Search...',
@@ -114,7 +95,8 @@ module.exports = {
           {text: 'Home', link: '/'},
           {text: 'Guide', link: '/guide/'},
           {text: 'Tutorials', link: '/tutorials/'},
-          {text: 'Samples', link: '/samples/'}
+          {text: 'Samples', link: '/samples/'},
+          developmentMenu('/')
         ],
         sidebar: {
           '/guide/': [
@@ -212,7 +194,8 @@ module.exports = {
           {text: 'ホーム', link: '/ja/'},
           {text: 'ガイド', link: '/ja/guide/'},
           {text: 'チュートリアル', link: '/ja/tutorials/'},
-          {text: 'サンプル', link: '/ja/samples/'}
+          {text: 'サンプル', link: '/ja/samples/'},
+          developmentMenu('/ja/')
         ],
         sidebar: {
           '/ja/guide/': [

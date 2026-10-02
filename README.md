@@ -66,6 +66,7 @@ npm run verify     # build, package tests, lint and browser tests
 npm run package    # create an archive with dist files
 npm run docs       # generate documentation (`dist/docs`)
 npm run docs:dev   # generate documentation and watch for changes
+npm run test:docs  # exercise the built documentation in Chromium
 ```
 
 The `main`, `module`, `unpkg` and `jsdelivr` paths deliberately retain the
@@ -85,12 +86,36 @@ scrolling, expired-data cleanup, `update('quiet')`, tooltip values, pause/resume
 and timer/listener teardown. It is a smoke-test baseline, not full compatibility,
 performance, long-running, annotation/zoom, or installed JSLive acceptance.
 
+### Development documentation
+
+`npm run docs` builds one development site at `/chartjs-plugin-streaming/`.
+There is no npm-backed version selector, no release-version placeholder, and
+no tracking for the original author's Analytics account. Both language menus
+link to this fork's `dev` source and GitHub releases. Editing links target `dev`.
+This does not create, publish or deploy a documentation site.
+
+The existing VuePress 1 toolchain needs these narrowly scoped compatibility fixes:
+
+- Webpack is pinned to 4.47.0 for Node 24 hashing support. See its
+  [release notes](https://github.com/webpack/webpack/releases/tag/v4.47.0).
+- Terser minification remains enabled; its optional legacy MD4 disk cache is off.
+- Babel transpiles Chart.js 4 class fields only inside the documentation build.
+- A resolver alias handles the Luxon adapter's exports-only package entry, and
+  the examples import the existing generated streaming ESM bundle.
+
+Run `npm run docs` followed by `npm run test:docs`. The browser check covers
+English/Japanese development menus, fork edit links, resource loading and a
+live line-chart sample. It blocks external network requests and supplies an
+empty response for the inherited theme's exact Font Awesome CDN stylesheet.
+Icon rendering and all historical examples are not covered by this smoke test.
+The theme still references that optional stylesheet in normal browsing.
+The separate `docs` CI job builds and runs this test and remains blocking.
+
 ### Known inherited infrastructure issues
 
-- The documentation build currently fails because its version-menu plugin
-  fetches npm versions for the unavailable `@qultoltd/chartjs-plugin-streaming`
-  package. The separate `docs` CI job remains blocking; it is not skipped or
-  marked as an allowed failure. Repairing the documentation is a separate step.
+- The documentation dependencies remain a legacy VuePress toolchain. Its
+  Browserslist data and Node deprecation warnings require separate maintenance;
+  this repair is not a full documentation-framework migration.
 - Six existing complexity/statement-count lint warnings remain in plugin code.
   The dependency tree contains deprecated development tools; this change does
   not claim to complete a dependency/security modernization.

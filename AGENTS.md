@@ -11,6 +11,6 @@
 - Use the development versions in `.nvmrc` and `packageManager`, install with
   `npm ci --ignore-scripts`, and run `npm run verify` before handing off changes.
 - Check `npm run package` and bundle/lockfile diffs for packaging changes.
-- Keep the existing documentation check visible. Report its known failure
-  separately until an explicitly authorized documentation repair is complete.
+- For documentation changes, run `npm run docs` and `npm run test:docs` too.
+  Keep the documentation CI check blocking; never deploy as part of verification.
 - Never use a passing smoke test as proof of full Chart.js or JSLive compatibility.
