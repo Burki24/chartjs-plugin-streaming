@@ -111,6 +111,28 @@ Icon rendering and all historical examples are not covered by this smoke test.
 The theme still references that optional stylesheet in normal browsing.
 The separate `docs` CI job builds and runs this test and remains blocking.
 
+### Versioning and releases
+
+`dev` is the persistent integration branch; `main` is the stable release branch.
+The fork continues the `3.x.0` version series using the JSLive commit-counting
+model. Each new non-metadata commit advances the minor component. An automated
+commit synchronizes `package.json`, both lockfile root versions and all three
+bundles. Build number and date are derived from the source commit, not the
+workflow run. Repeated runs for the same source produce identical metadata.
+
+The fixed baseline in `.versioning.json` starts at 3.1.0 and excludes the earlier
+upstream/fork history. Counting all subsequent non-metadata commits also covers
+batched pushes and runs missed while the GitHub App is not yet configured.
+An increment is a development revision, not an automatic release or a claim
+that every commit adds a feature. Breaking changes still require an explicit
+major-version decision and baseline migration.
+
+See [Release process](docs/RELEASE_PROCESS.md) for the one-time branch/GitHub App
+setup, required checks, changelog handling, manual releases and back-merges.
+The metadata bot never publishes to npm, creates a tag or deploys documentation.
+Package identity and asset paths remain unchanged pending a separate publication
+decision. Material changes are recorded in [CHANGELOG.md](CHANGELOG.md).
+
 ### Known inherited infrastructure issues
 
 - The documentation dependencies remain a legacy VuePress toolchain. Its
@@ -119,9 +141,9 @@ The separate `docs` CI job builds and runs this test and remains blocking.
 - Six existing complexity/statement-count lint warnings remain in plugin code.
   The dependency tree contains deprecated development tools; this change does
   not claim to complete a dependency/security modernization.
-- Historical release, publication and documentation-deployment workflows are
-  not configured for this fork. Do not dispatch them. Releases, package naming,
-  ownership metadata and publishing require a separate decision.
+- Historical release, publication and documentation-deployment jobs are
+  disabled. Do not invoke their legacy scripts manually. Package naming,
+  ownership metadata and publishing still require a separate decision.
 
 ## License
 

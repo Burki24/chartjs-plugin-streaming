@@ -6,7 +6,8 @@ on:
 
 jobs:
   publish-to-npm:
-    if: github.repository_owner == 'nagix'
+    # Publishing requires a separate package-ownership decision.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

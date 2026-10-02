@@ -3,11 +3,12 @@ name: Deploy docs
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   build:
-    if: github.repository_owner == 'nagix'
+    # No documentation deployment is part of the release process.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2

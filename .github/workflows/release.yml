@@ -4,6 +4,8 @@ on: workflow_dispatch
 
 jobs:
   create-release:
+    # Legacy release path is disabled; releases use the verified main commit.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -28,6 +30,7 @@ jobs:
           GH_AUTH_NAME: ${{ secrets.GH_AUTH_NAME }}
 
   create-docs-tag:
+    if: ${{ false }}
     needs: create-release
     runs-on: ubuntu-latest
     steps:
