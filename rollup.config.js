@@ -8,10 +8,11 @@ const pkg = require('./package.json');
 const input = 'src/index.js';
 const inputESM = 'src/index.esm.js';
 
+// Preserve the upstream copyright notice; build output must not depend on today's date.
 const banner = `/*!
  * ${pkg.name} v${pkg.version}
  * ${pkg.homepage}
- * (c) 2017-${new Date().getFullYear()} Akihiko Kusanagi
+ * (c) 2017-2023 Akihiko Kusanagi
  * Released under the ${pkg.license} license
  */`;
 
