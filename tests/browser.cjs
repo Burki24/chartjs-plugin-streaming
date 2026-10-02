@@ -10,6 +10,146 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
 for (const chartPackage of ['chart.js', 'chartjs-current']) {
   for (const artifact of [pkg.main, pkg.unpkg]) {
+    test(`${chartPackage} / ${path.basename(artifact)}: quiet update recovery`, {timeout: 30000}, async () => {
+      const browser = await chromium.launch({headless: true,
+        executablePath: process.env.STREAMING_BROWSER_EXECUTABLE || undefined});
+      try {
+        const page = await browser.newPage();
+        const errors = [];
+        page.on('pageerror', error => errors.push(error.message));
+        await page.route('**/*', route => route.abort());
+        await page.clock.install({time: new Date('2024-01-02T12:00:00Z')});
+        await page.clock.pauseAt(new Date('2024-01-02T12:00:01Z'));
+        await page.setContent('<canvas id="chart" width="900" height="500"></canvas>');
+        for (const file of [`node_modules/${chartPackage}/dist/chart.umd.js`, artifact]) {
+          await page.addScriptTag({content: read(file)});
+        }
+        const failures = await page.evaluate(() => {
+          const failures = [];
+          const keys = ['_setStyle', 'updateElement', 'updateSharedOptions'];
+          for (const ownMethods of [false, true]) {
+            for (const phase of ['success', 'beforeUpdate', 'beforeDatasetUpdate', 'afterDatasetUpdate', 'cancel']) {
+              for (const active of [false, true]) {
+                const label = `${ownMethods ? 'own' : 'inherited'} / ${phase} / animation=${active}`;
+                const expectedError = new Error(label);
+                let armed = false;
+                let sawSuppression = false;
+                const fault = hook => { if (armed && phase === hook) throw expectedError; };
+                const instance = new Chart(document.getElementById('chart'), {
+                  type: 'line', data: {labels: ['a', 'b'], datasets: [{data: [1, 2]}, {data: [3, 4]}]},
+                  options: {responsive: false, animation: false},
+                  plugins: [{id: 'quietFailureProbe',
+                    beforeUpdate: () => fault('beforeUpdate'),
+                    beforeDatasetsUpdate: chart => {
+                      // Control only the visibility-animation branch, not the update under test.
+                      if (armed && active) chart.data.datasets.forEach((_, index) => {
+                        chart.getDatasetMeta(index).$animations = {visible: {_active: true}};
+                      });
+                    },
+                    beforeDatasetUpdate: (chart, {meta}) => {
+                      if (armed && active) {
+                        sawSuppression = Object.hasOwn(meta.controller, 'updateElement') &&
+                          Object.hasOwn(meta.controller, 'updateSharedOptions');
+                      }
+                      fault('beforeDatasetUpdate');
+                      if (armed && phase === 'cancel') return false;
+                    },
+                    afterDatasetUpdate: () => fault('afterDatasetUpdate')
+                  }]
+                });
+                try {
+                  const controllers = instance.data.datasets.map((_, i) => instance.getDatasetMeta(i).controller);
+                  if (ownMethods) controllers.forEach(controller => keys.forEach(key => {
+                    const original = controller[key];
+                    Object.defineProperty(controller, key, {configurable: true, writable: true,
+                      enumerable: false, value: function(...args) { return original.apply(this, args); }});
+                  }));
+                  const snapshots = controllers.map(controller => keys.map(key => ({
+                    method: controller[key], descriptor: Object.getOwnPropertyDescriptor(controller, key)
+                  })));
+                  armed = true;
+                  let caught;
+                  try { instance.update('quiet'); } catch (error) { caught = error; }
+                  armed = false;
+                  const shouldThrow = !['success', 'cancel'].includes(phase);
+                  if (caught !== (shouldThrow ? expectedError : undefined)) failures.push(`${label}: original error`);
+                  if (active && phase !== 'beforeUpdate' && !sawSuppression) failures.push(`${label}: missing suppression`);
+                  controllers.forEach((controller, index) => keys.forEach((key, keyIndex) => {
+                    const saved = snapshots[index][keyIndex];
+                    const actual = Object.getOwnPropertyDescriptor(controller, key);
+                    if (controller[key] !== saved.method || !!actual !== !!saved.descriptor ||
+                      (actual && ['value', 'get', 'set', 'writable', 'enumerable', 'configurable']
+                        .some(field => actual[field] !== saved.descriptor[field]))) {
+                      failures.push(`${label}: dataset ${index} ${key} not restored`);
+                    }
+                  }));
+                  controllers.forEach(controller => { delete controller._cachedMeta.$animations; });
+                  const point = instance.getDatasetMeta(0).data[0];
+                  const oldY = point.y;
+                  instance.data.datasets[0].data[0] = 77;
+                  instance.update('none');
+                  if (!Number.isFinite(point.y) || point.y === oldY ||
+                    instance.getDatasetMeta(0).controller.getParsed(0).y !== 77) {
+                    failures.push(`${label}: subsequent normal update did not recover`);
+                  }
+                } finally {
+                  instance.destroy();
+                }
+              }
+            }
+          }
+          let armed = false;
+          let nested = false;
+          const nestedError = new Error('nested update');
+          const instance = new Chart(document.getElementById('chart'), {
+            type: 'line', data: {labels: ['a'], datasets: [{data: [1]}, {data: [2]}]},
+            options: {responsive: false, animation: false},
+            plugins: [{id: 'nestedQuietProbe', beforeUpdate: chart => {
+              if (!armed) return;
+              if (nested) throw nestedError;
+              nested = true;
+              const controller = chart.getDatasetMeta(0).controller;
+              const outerStyle = controller._setStyle;
+              let caught;
+              try { chart.update('quiet'); } catch (error) { caught = error; }
+              if (caught !== nestedError || controller._setStyle !== outerStyle) {
+                failures.push('nested update did not restore the outer override');
+              }
+            }}]
+          });
+          try {
+            const controller = instance.getDatasetMeta(0).controller;
+            const original = controller._setStyle;
+            armed = true;
+            instance.update('quiet');
+            if (controller._setStyle !== original || Object.hasOwn(controller, '_setStyle')) {
+              failures.push('outer update did not restore the original method');
+            }
+            armed = false;
+            // A failure while installing the second override must restore the first.
+            const second = instance.getDatasetMeta(1).controller;
+            Object.defineProperty(second, '_setStyle', {value: second._setStyle,
+              writable: false, configurable: true});
+            let caught;
+            try { instance.update('quiet'); } catch (error) { caught = error; }
+            if (!(caught instanceof TypeError) || controller._setStyle !== original ||
+              Object.hasOwn(controller, '_setStyle') ||
+              Object.getOwnPropertyDescriptor(second, '_setStyle').writable !== false) {
+              failures.push('partial override setup was not rolled back');
+            }
+            delete second._setStyle;
+            instance.update('none');
+          } finally {
+            instance.destroy();
+          }
+          return failures;
+        });
+        assert.deepEqual(failures, []);
+        assert.deepEqual(errors, []);
+      } finally {
+        await browser.close();
+      }
+    });
     test(`${chartPackage} / ${path.basename(artifact)}: realtime lifecycle`, {timeout: 30000}, async () => {
       const browser = await chromium.launch({headless: true,
         executablePath: process.env.STREAMING_BROWSER_EXECUTABLE || undefined});

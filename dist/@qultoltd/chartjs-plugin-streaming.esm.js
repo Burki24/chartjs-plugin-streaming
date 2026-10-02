@@ -790,21 +790,54 @@ defaults.set('transitions', {
   }
 });
 const transitionKeys = {x: ['x', 'cp1x', 'cp2x'], y: ['y', 'cp1y', 'cp2y']};
+const updateOverrides = new WeakMap();
+function overrideMethod(chart, controller, key, value) {
+  const overrides = updateOverrides.get(chart);
+  let methods = overrides.get(controller);
+  if (!methods) {
+    methods = new Map();
+    overrides.set(controller, methods);
+  }
+  if (!methods.has(key)) {
+    methods.set(key, Object.getOwnPropertyDescriptor(controller, key));
+  }
+  controller[key] = value;
+}
+function restoreMethod(controller, methods, key) {
+  if (methods.has(key)) {
+    const descriptor = methods.get(key);
+    if (descriptor) {
+      Object.defineProperty(controller, key, descriptor);
+    } else {
+      delete controller[key];
+    }
+    methods.delete(key);
+  }
+}
 function update(mode) {
   const me = this;
-  if (mode === 'quiet') {
-    each(me.data.datasets, (dataset, datasetIndex) => {
-      const controller = me.getDatasetMeta(datasetIndex).controller;
-      controller._setStyle = function(element, index, _mode, active) {
-        DatasetController.prototype._setStyle.call(this, element, index, 'quiet', active);
-      };
+  const previous = updateOverrides.get(me);
+  const overrides = new Map();
+  updateOverrides.set(me, overrides);
+  try {
+    if (mode === 'quiet') {
+      each(me.data.datasets, (dataset, datasetIndex) => {
+        const controller = me.getDatasetMeta(datasetIndex).controller;
+        overrideMethod(me, controller, '_setStyle', function(element, index, _mode, active) {
+          DatasetController.prototype._setStyle.call(this, element, index, 'quiet', active);
+        });
+      });
+    }
+    Chart.prototype.update.call(me, mode);
+  } finally {
+    overrides.forEach((methods, controller) => {
+      methods.forEach((descriptor, key) => restoreMethod(controller, methods, key));
     });
-  }
-  Chart.prototype.update.call(me, mode);
-  if (mode === 'quiet') {
-    each(me.data.datasets, (dataset, datasetIndex) => {
-      delete me.getDatasetMeta(datasetIndex).controller._setStyle;
-    });
+    if (previous) {
+      updateOverrides.set(me, previous);
+    } else {
+      updateOverrides.delete(me);
+    }
   }
 }
 function render(chart) {
@@ -870,8 +903,8 @@ var StreamingPlugin = {
     if (mode === 'quiet') {
       const {controller, $animations} = meta;
       if ($animations && $animations.visible && $animations.visible._active) {
-        controller.updateElement = noop;
-        controller.updateSharedOptions = noop;
+        overrideMethod(chart, controller, 'updateElement', noop);
+        overrideMethod(chart, controller, 'updateSharedOptions', noop);
       }
     }
   },
@@ -885,8 +918,11 @@ var StreamingPlugin = {
       element.$streaming = getAxisMap(element, transitionKeys, meta);
     }
     if (mode === 'quiet') {
-      delete controller.updateElement;
-      delete controller.updateSharedOptions;
+      const methods = updateOverrides.get(chart).get(controller);
+      if (methods) {
+        restoreMethod(controller, methods, 'updateElement');
+        restoreMethod(controller, methods, 'updateSharedOptions');
+      }
     }
   },
   beforeDatasetDraw(chart, args) {
