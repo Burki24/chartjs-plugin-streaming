@@ -115,6 +115,43 @@ for (const chartPackage of ['chart.js', 'chartjs-current']) {
           registered: !!Chart.getChart(document.getElementById('chart'))})),
         {intervals: 0, frames: 0, listeners: 0, registered: false});
         assert.deepEqual(errors, []);
+        for (const destroyIn of ['onRefresh', 'afterRender']) {
+          await page.evaluate(destroyIn => {
+            probe.refreshes = 0;
+            probe.destroyed = 0;
+            probe.armed = false;
+            const destroy = instance => {
+              if (probe.armed) { probe.destroyed++; instance.destroy(); }
+            };
+            window.chart = new Chart(document.getElementById('chart'), {
+              type: 'line',
+              data: {datasets: [{data: [{x: Date.now(), y: 1}]}]},
+              options: {responsive: false, animation: false,
+                scales: {x: {type: 'realtime', realtime: {refresh: 100,
+                  onRefresh: instance => {
+                    probe.refreshes++;
+                    if (destroyIn === 'onRefresh') destroy(instance);
+                  }}}}},
+              plugins: [{id: 'destroyProbe', afterRender: instance => {
+                if (destroyIn === 'afterRender') destroy(instance);
+              }}]
+            });
+          }, destroyIn);
+          // Let the initial zero-delay refresh establish its configured interval.
+          await page.clock.runFor(50);
+          await page.evaluate(() => { probe.armed = true; });
+          await page.clock.runFor(1000);
+          assert.equal(await page.evaluate(() => probe.destroyed), 1, destroyIn);
+          assert.deepEqual(errors, [], `${destroyIn}: no work may access a destroyed chart`);
+          assert.deepEqual(await page.evaluate(() => ({intervals: probe.intervals.size,
+            frames: probe.frames.size,
+            listeners: [...probe.listeners.values()].reduce((sum, entries) => sum + entries.size, 0),
+            registered: !!Chart.getChart(document.getElementById('chart'))})),
+          {intervals: 0, frames: 0, listeners: 0, registered: false}, destroyIn);
+          const refreshes = await page.evaluate(() => probe.refreshes);
+          await page.clock.runFor(500);
+          assert.equal(await page.evaluate(() => probe.refreshes), refreshes);
+        }
       } finally {
         await browser.close();
       }

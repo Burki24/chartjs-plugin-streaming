@@ -35,11 +35,16 @@ const cancelAnimFrame = (function() {
 export function startFrameRefreshTimer(context, func) {
   if (!context.frameRequestID) {
     const refresh = () => {
+      const frameRequestID = context.frameRequestID;
       const nextRefresh = context.nextRefresh || 0;
       const now = Date.now();
 
       if (nextRefresh <= now) {
         const newFrameRate = call(func);
+        // The callback may stop this loop or replace it with another one.
+        if (context.frameRequestID !== frameRequestID) {
+          return;
+        }
         const frameDuration = 1000 / (Math.max(newFrameRate, 0) || 30);
         const newNextRefresh = context.nextRefresh + frameDuration || 0;
 
@@ -72,9 +77,13 @@ export function stopDataRefreshTimer(context) {
 
 export function startDataRefreshTimer(context, func, interval) {
   if (!context.refreshTimerID) {
-    context.refreshTimerID = setInterval(() => {
+    const refreshTimerID = context.refreshTimerID = setInterval(() => {
       const newInterval = call(func);
 
+      // Do not restart a stopped timer or overwrite a replacement callback.
+      if (context.refreshTimerID !== refreshTimerID) {
+        return;
+      }
       if (context.refreshInterval !== newInterval && !isNaN(newInterval)) {
         stopDataRefreshTimer(context);
         startDataRefreshTimer(context, func, newInterval);

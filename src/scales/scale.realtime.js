@@ -291,9 +291,14 @@ export default class RealTimeScale extends TimeScale {
     super.init(scaleOpts, opts);
     startDataRefreshTimer(me.$realtime, () => {
       const chart = me.chart;
+      const refreshTimerID = me.$realtime.refreshTimerID;
       const onRefresh = resolveOption(me, 'onRefresh');
 
       call(onRefresh, [chart], me);
+      // onRefresh may destroy the chart, invalidating the scale and its timer.
+      if (me.$realtime.refreshTimerID !== refreshTimerID) {
+        return;
+      }
       clean(me);
       chart.update('quiet');
       return resolveOption(me, 'refresh');

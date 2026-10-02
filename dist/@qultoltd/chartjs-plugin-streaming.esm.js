@@ -34,10 +34,14 @@ const cancelAnimFrame = (function() {
 function startFrameRefreshTimer(context, func) {
   if (!context.frameRequestID) {
     const refresh = () => {
+      const frameRequestID = context.frameRequestID;
       const nextRefresh = context.nextRefresh || 0;
       const now = Date.now();
       if (nextRefresh <= now) {
         const newFrameRate = callback(func);
+        if (context.frameRequestID !== frameRequestID) {
+          return;
+        }
         const frameDuration = 1000 / (Math.max(newFrameRate, 0) || 30);
         const newNextRefresh = context.nextRefresh + frameDuration || 0;
         context.nextRefresh = newNextRefresh > now ? newNextRefresh : now + frameDuration;
@@ -64,8 +68,11 @@ function stopDataRefreshTimer(context) {
 }
 function startDataRefreshTimer(context, func, interval) {
   if (!context.refreshTimerID) {
-    context.refreshTimerID = setInterval(() => {
+    const refreshTimerID = context.refreshTimerID = setInterval(() => {
       const newInterval = callback(func);
+      if (context.refreshTimerID !== refreshTimerID) {
+        return;
+      }
       if (context.refreshInterval !== newInterval && !isNaN(newInterval)) {
         stopDataRefreshTimer(context);
         startDataRefreshTimer(context, func, newInterval);
@@ -595,8 +602,12 @@ class RealTimeScale extends TimeScale {
     super.init(scaleOpts, opts);
     startDataRefreshTimer(me.$realtime, () => {
       const chart = me.chart;
+      const refreshTimerID = me.$realtime.refreshTimerID;
       const onRefresh = resolveOption(me, 'onRefresh');
       callback(onRefresh, [chart], me);
+      if (me.$realtime.refreshTimerID !== refreshTimerID) {
+        return;
+      }
       clean(me);
       chart.update('quiet');
       return resolveOption(me, 'refresh');
