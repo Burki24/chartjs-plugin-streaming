@@ -19,6 +19,9 @@
   updates while preserving pre-existing method descriptors.
 - Cancel pending hover replays when a chart is destroyed, including destruction
   from rendering callbacks, without accessing the disposed chart afterward.
+- Keep tooltip selections and displayed values aligned with retained data when
+  expired points are removed; clear expired selections and refresh external
+  tooltips after data synchronization, including on paused scales.
 
 This section describes unpublished fork work since the qultoltd 3.1.0 baseline.
 It does not replace or relabel upstream tags or releases.

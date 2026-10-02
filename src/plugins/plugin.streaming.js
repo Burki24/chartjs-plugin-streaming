@@ -152,6 +152,15 @@ export default {
     }
   },
 
+  afterUpdate(chart) {
+    const tooltip = chart.tooltip;
+
+    if (tooltip && tooltip.$streamingDataChanged) {
+      delete tooltip.$streamingDataChanged;
+      tooltip.update(true);
+    }
+  },
+
   beforeDatasetUpdate(chart, args) {
     const {meta, mode} = args;
 

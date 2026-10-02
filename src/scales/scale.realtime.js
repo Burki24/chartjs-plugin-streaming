@@ -136,6 +136,41 @@ const datasetPropertyKeys = [
   'rotation'
 ];
 
+function cleanActiveElements(active, datasetIndex, start, count) {
+  let changed = false;
+
+  if (count) {
+    each(active, (item, index) => {
+      if (item.datasetIndex === datasetIndex && item.index >= start) {
+        if (item.index >= start + count) {
+          // Chart and tooltip selections can share items; do not mutate them twice.
+          active[index] = {...item, index: item.index - count};
+        } else {
+          active.splice(index, 1);
+        }
+        changed = true;
+      }
+    }, null, true);
+  }
+  return changed;
+}
+
+function cleanSelections(chart, datasetIndex, start, count) {
+  const active = chart.getActiveElements();
+  const changed = cleanActiveElements(active, datasetIndex, start, count);
+  const tooltip = chart.tooltip;
+
+  if (tooltip) {
+    const tooltipActive = tooltip.getActiveElements();
+    const tooltipChanged = tooltipActive === active ? changed : cleanActiveElements(tooltipActive, datasetIndex, start, count);
+
+    if (tooltipChanged) {
+      // Refresh only after Chart.js has synchronized parsed data and elements.
+      tooltip.$streamingDataChanged = true;
+    }
+  }
+}
+
 function clean(scale) {
   const {chart, id, max} = scale;
   const duration = resolveOption(scale, 'duration');
@@ -198,15 +233,7 @@ function clean(scale) {
         };
       }
 
-      each(chart._active, (item, index) => {
-        if (item.datasetIndex === datasetIndex && item.index >= start) {
-          if (item.index >= start + count) {
-            item.index -= count;
-          } else {
-            chart._active.splice(index, 1);
-          }
-        }
-      }, null, true);
+      cleanSelections(chart, datasetIndex, start, count);
     }
   });
   if (removalRange) {

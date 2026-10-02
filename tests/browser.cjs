@@ -10,6 +10,143 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
 for (const chartPackage of ['chart.js', 'chartjs-current']) {
   for (const artifact of [pkg.main, pkg.unpkg]) {
+    test(`${chartPackage} / ${path.basename(artifact)}: active points survive data cleanup`, {timeout: 30000}, async () => {
+      const browser = await chromium.launch({headless: true,
+        executablePath: process.env.STREAMING_BROWSER_EXECUTABLE || undefined});
+      try {
+        const page = await browser.newPage();
+        const errors = [];
+        page.on('pageerror', error => errors.push(error.message));
+        await page.route('**/*', route => route.abort());
+        await page.clock.install({time: new Date('2024-01-02T12:00:00Z')});
+        await page.clock.pauseAt(new Date('2024-01-02T12:00:01Z'));
+        await page.setContent('<canvas id="chart" width="900" height="500"></canvas>');
+        for (const file of [`node_modules/${chartPackage}/dist/chart.umd.js`,
+          'node_modules/luxon/build/global/luxon.min.js',
+          'node_modules/chartjs-adapter-luxon/dist/chartjs-adapter-luxon.umd.js', artifact]) {
+          await page.addScriptTag({content: read(file)});
+        }
+        for (const ttl of [1000, null]) {
+          for (const tooltip of [true, false]) {
+            await page.evaluate(({ttl, tooltip}) => {
+              window.probe = {external: null};
+              window.chart = new Chart(document.getElementById('chart'), {
+                type: 'line', data: {datasets: [{data: []}, {xAxisID: 'staticX', data: []}]},
+                options: {responsive: false, animation: false,
+                  plugins: {tooltip: tooltip ? {external: ({tooltip: tip}) => {
+                    probe.external = {opacity: tip.opacity,
+                      values: tip.dataPoints?.map(item => item.raw.y) || []};
+                  }} : false},
+                  scales: {x: {type: 'realtime', realtime: {duration: 1000, refresh: 100,
+                    ...(ttl === null ? {} : {ttl})}}, staticX: {type: 'linear', axis: 'x'}}}
+              });
+            }, {ttl, tooltip});
+            await page.clock.runFor(50);
+            await page.evaluate(tooltip => {
+              chart.data.datasets[0].data = Array.from({length: 8}, (_, i) => ({x: Date.now() - 1500 + i * 200, y: (i + 1) * 10}));
+              chart.data.datasets[0].pointHoverRadius = [11, 12, 13, 14, 15, 16, 17, 18];
+              chart.data.datasets[1].data = [{x: 0, y: 100}, {x: 1, y: 200}, {x: 2, y: 300}];
+              chart.update('quiet');
+              probe.selected = chart.data.datasets[0].data[5];
+              probe.element = chart.getDatasetMeta(0).data[5];
+              const active = [{datasetIndex: 0, index: 5}, {datasetIndex: 1, index: 2}];
+              chart.setActiveElements(active);
+              if (tooltip) chart.tooltip.setActiveElements(active, {x: 450, y: 200});
+            }, tooltip);
+            await page.clock.runFor(200);
+            assert.deepEqual(errors, []);
+            const retained = await page.evaluate(tooltip => {
+              const index = chart.data.datasets[0].data.indexOf(probe.selected);
+              const active = chart.getActiveElements();
+              return {shifted: index >= 0 && index < 5,
+                hover: active.map(item => ({datasetIndex: item.datasetIndex, index: item.index})),
+                expectedHover: [{datasetIndex: 0, index}, {datasetIndex: 1, index: 2}],
+                sameElement: active[0].element === probe.element,
+                radius: active[0].element.options.radius,
+                tip: tooltip ? chart.tooltip.getActiveElements().map(item => ({datasetIndex: item.datasetIndex, index: item.index})) : null,
+                values: tooltip ? chart.tooltip.dataPoints.map(item => [item.dataIndex, item.raw.y, Number(item.formattedValue)]) : null};
+            }, tooltip);
+            assert.equal(retained.shifted, true, 'cleanup must remove points before the selection');
+            assert.deepEqual(retained.hover, retained.expectedHover);
+            assert.equal(retained.sameElement, true);
+            assert.equal(retained.radius, 16);
+            if (tooltip) {
+              assert.deepEqual(retained.tip, retained.expectedHover, 'tooltip must track the same sample after index shifts');
+              assert.deepEqual(retained.values, [[retained.expectedHover[0].index, 60, 60], [2, 300, 300]]);
+            }
+            await page.clock.runFor(1400);
+            assert.deepEqual(errors, []);
+            const removed = await page.evaluate(tooltip => ({
+              selectedPresent: chart.data.datasets[0].data.includes(probe.selected),
+              hover: chart.getActiveElements().map(item => [item.datasetIndex, item.index]),
+              tip: tooltip ? chart.tooltip.getActiveElements().map(item => [item.datasetIndex, item.index]) : null,
+              values: tooltip ? chart.tooltip.dataPoints.map(item => item.raw.y) : null,
+              external: probe.external
+            }), tooltip);
+            assert.equal(removed.selectedPresent, false);
+            assert.deepEqual(removed.hover, [[1, 2]]);
+            if (tooltip) {
+              assert.deepEqual(removed.tip, [[1, 2]]);
+              assert.deepEqual(removed.values, [300]);
+              assert.deepEqual(removed.external, {opacity: 1, values: [300]});
+            }
+            if (tooltip && ttl !== null) {
+              await page.evaluate(() => {
+                chart.data.datasets[0].data.push({x: Date.now(), y: 42});
+                chart.update('quiet');
+                const active = [{datasetIndex: 0, index: 0}];
+                chart.setActiveElements(active);
+                chart.tooltip.setActiveElements(active, {x: 450, y: 200});
+              });
+              await page.clock.runFor(1100);
+              assert.deepEqual(await page.evaluate(() => ({hover: chart.getActiveElements().length,
+                tip: chart.tooltip.getActiveElements().length, opacity: chart.tooltip.opacity,
+                externalOpacity: probe.external.opacity})),
+              {hover: 0, tip: 0, opacity: 0, externalOpacity: 0}, 'the last expired selection must hide the tooltip');
+              assert.deepEqual(errors, []);
+            }
+            await page.evaluate(() => chart.destroy());
+          }
+        }
+        // A paused scale preserves visible points but can trim a middle range of future data.
+        await page.evaluate(() => {
+          window.chart = new Chart(document.getElementById('chart'), {
+            type: 'line', data: {datasets: [{data: []}]},
+            options: {responsive: false, animation: false,
+              scales: {x: {type: 'realtime', realtime: {duration: 1000, refresh: 100, ttl: 1000}}}}
+          });
+        });
+        await page.clock.runFor(50);
+        await page.evaluate(() => {
+          chart.data.datasets[0].data = Array.from({length: 9}, (_, i) => ({x: Date.now() - 600 + i * 200, y: (i + 1) * 10}));
+          chart.update('quiet');
+          chart.options.scales.x.realtime.pause = true;
+          chart.update('quiet');
+          const active = [{datasetIndex: 0, index: 1}, {datasetIndex: 0, index: 8}];
+          chart.setActiveElements(active);
+          chart.tooltip.setActiveElements(active, {x: 450, y: 200});
+          probe.selected = chart.data.datasets[0].data[8];
+        });
+        await page.clock.runFor(1800);
+        assert.deepEqual(errors, []);
+        const paused = await page.evaluate(() => ({index: chart.data.datasets[0].data.indexOf(probe.selected),
+          hover: chart.getActiveElements().map(item => item.index),
+          tip: chart.tooltip.getActiveElements().map(item => item.index),
+          values: chart.tooltip.dataPoints.map(item => item.raw.y)}));
+        assert.ok(paused.index >= 5 && paused.index < 8);
+        assert.deepEqual(paused.hover, [1, paused.index]);
+        assert.deepEqual(paused.tip, [1, paused.index]);
+        assert.deepEqual(paused.values, [20, 90]);
+        await page.clock.runFor(400);
+        assert.deepEqual(errors, []);
+        assert.deepEqual(await page.evaluate(() => ({hover: chart.getActiveElements().map(item => item.index),
+          tip: chart.tooltip.getActiveElements().map(item => item.index),
+          values: chart.tooltip.dataPoints.map(item => item.raw.y)})), {hover: [1], tip: [1], values: [20]});
+        await page.evaluate(() => chart.destroy());
+      } finally {
+        await browser.close();
+      }
+    });
     test(`${chartPackage} / ${path.basename(artifact)}: hover replay teardown`, {timeout: 30000}, async () => {
       const browser = await chromium.launch({headless: true,
         executablePath: process.env.STREAMING_BROWSER_EXECUTABLE || undefined});

@@ -477,6 +477,34 @@ const datasetPropertyKeys = [
   'radius',
   'rotation'
 ];
+function cleanActiveElements(active, datasetIndex, start, count) {
+  let changed = false;
+  if (count) {
+    helpers.each(active, (item, index) => {
+      if (item.datasetIndex === datasetIndex && item.index >= start) {
+        if (item.index >= start + count) {
+          active[index] = {...item, index: item.index - count};
+        } else {
+          active.splice(index, 1);
+        }
+        changed = true;
+      }
+    }, null, true);
+  }
+  return changed;
+}
+function cleanSelections(chart, datasetIndex, start, count) {
+  const active = chart.getActiveElements();
+  const changed = cleanActiveElements(active, datasetIndex, start, count);
+  const tooltip = chart.tooltip;
+  if (tooltip) {
+    const tooltipActive = tooltip.getActiveElements();
+    const tooltipChanged = tooltipActive === active ? changed : cleanActiveElements(tooltipActive, datasetIndex, start, count);
+    if (tooltipChanged) {
+      tooltip.$streamingDataChanged = true;
+    }
+  }
+}
 function clean(scale) {
   const {chart, id, max} = scale;
   const duration = resolveOption(scale, 'duration');
@@ -530,15 +558,7 @@ function clean(scale) {
           count: count
         };
       }
-      helpers.each(chart._active, (item, index) => {
-        if (item.datasetIndex === datasetIndex && item.index >= start) {
-          if (item.index >= start + count) {
-            item.index -= count;
-          } else {
-            chart._active.splice(index, 1);
-          }
-        }
-      }, null, true);
+      cleanSelections(chart, datasetIndex, start, count);
     }
   });
   if (removalRange) {
@@ -900,6 +920,13 @@ var StreamingPlugin = {
       attachChart(plugin, chart);
     } catch (e) {
       detachChart(chart);
+    }
+  },
+  afterUpdate(chart) {
+    const tooltip = chart.tooltip;
+    if (tooltip && tooltip.$streamingDataChanged) {
+      delete tooltip.$streamingDataChanged;
+      tooltip.update(true);
     }
   },
   beforeDatasetUpdate(chart, args) {
