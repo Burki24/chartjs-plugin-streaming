@@ -3,7 +3,7 @@
   "homepage": "https://github.com/qultoltd/chartjs-plugin-streaming",
   "description": "Chart.js plugin for live streaming data",
   "author": "Akihiko Kusanagi <nagi@nagi-p.com> (https://nagix.github.io/)",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "license": "MIT",
   "jsdelivr": "dist/@qultoltd/chartjs-plugin-streaming.min.js",
   "unpkg": "dist/@qultoltd/chartjs-plugin-streaming.min.js",
@@ -104,8 +104,8 @@
     "chart.js": "^4.1.1"
   },
   "streamingMetadata": {
-    "sourceCommit": "7cd14d48df2b597359e8a02f9ae775129cd8a51b",
-    "build": 130880724,
-    "date": 1790937071
+    "sourceCommit": "ccadc937356bb9d7a7968de82d5c9a755b278555",
+    "build": 214621331,
+    "date": 1790938096
   }
 }

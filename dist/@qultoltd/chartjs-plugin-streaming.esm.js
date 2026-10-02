@@ -1,5 +1,5 @@
 /*!
- * @qultoltd/chartjs-plugin-streaming v3.2.0
+ * @qultoltd/chartjs-plugin-streaming v3.3.0
  * https://github.com/qultoltd/chartjs-plugin-streaming
  * (c) 2017-2023 Akihiko Kusanagi
  * Released under the MIT license
@@ -780,7 +780,7 @@ defaults.describe('scale.realtime', {
   _scriptable: name => name !== 'onRefresh'
 });
 
-var version = "3.2.0";
+var version = "3.3.0";
 
 defaults.set('transitions', {
   quiet: {
