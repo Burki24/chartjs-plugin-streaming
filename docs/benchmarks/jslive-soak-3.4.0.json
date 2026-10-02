@@ -1,0 +1,951 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-02T13:20:53.993Z",
+  "environment": {
+    "node": "v24.19.0",
+    "browser": "155.0.4283.18",
+    "platform": "win32",
+    "cpu": "AMD Ryzen 9 5900X 12-Core Processor            "
+  },
+  "forkCommit": "fc0dd2e493413e5ff349e81e33affd3aa5941013",
+  "jsliveCommit": "736fe53ba54eeb39e695b50d8fe7e130744459c6",
+  "candidateVersion": "3.4.0",
+  "baselineSha256": "2e0ac91691bc76ff2c618c7d600a36cc3a10784ef34cd30ac968d72d6d15d839",
+  "candidateSha256": "8fc5e182677ff6155f872fb7d5ce7bf6ac9c38e71ee84584768108cce4fbf0dd",
+  "libraries": [
+    {
+      "file": "SymconJSLive/js/chartjs/4.5.1/chart.umd.min.js",
+      "installedHash": "ecc3cd1eeb8c34d2178e3f59fd63ec5a3d84358c11730af0b9958dc886d7652a",
+      "vendoredHash": "48444a82d4edcb5bec0f1965faacdde18d9c17db3063d042abada2f705c9f54a"
+    },
+    {
+      "file": "SymconJSLive/js/moment/2.31.0/moment.min.js",
+      "installedHash": "c111ad2e4447c253765e679bb4a40ba91a3e23d80b4b69d603a0fd25164cb9de",
+      "vendoredHash": "db2cf339996ce8387e2750fabfe5161c1418b204f6f197167a09cfe5d6655892"
+    },
+    {
+      "file": "SymconJSLive/js/chartjs/plugins/moment/1.0.1/chartjs-adapter-moment.min.js",
+      "installedHash": "4ca6ddbc16c438c7decc60f16fbee9639d37277af609390f7794eb2729addb55",
+      "vendoredHash": "4ca6ddbc16c438c7decc60f16fbee9639d37277af609390f7794eb2729addb55"
+    },
+    {
+      "file": "SymconJSLive/js/chartjs/plugins/datalabels/2.2.0/chartjs-plugin-datalabels.min.js",
+      "installedHash": "20c08f3d9c6d2ef76df6d6a6f1127c0013339fe32add24222276c398c6308c38",
+      "vendoredHash": "20c08f3d9c6d2ef76df6d6a6f1127c0013339fe32add24222276c398c6308c38"
+    }
+  ],
+  "workload": {
+    "seconds": 120,
+    "repetitions": 2,
+    "warmupSeconds": 10,
+    "timezone": "Europe/Berlin",
+    "datasets": [
+      "line",
+      "bar"
+    ],
+    "offeredSamplesPerSecond": 200,
+    "windowMs": 10000,
+    "refreshMs": 100,
+    "frameRate": 30,
+    "labels": "every twentieth retained point",
+    "pauseSeconds": [
+      40,
+      50
+    ]
+  },
+  "runs": [
+    {
+      "variant": "baseline",
+      "repetition": 1,
+      "durationSeconds": 120.19,
+      "samples": [
+        {
+          "elapsedSeconds": 10.04,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947265614,
+            1790947275614
+          ],
+          "draws": 805,
+          "refreshes": 201,
+          "appended": 2012,
+          "labels": 82090,
+          "taskSeconds": 3.43,
+          "heapBytes": 5994656
+        },
+        {
+          "elapsedSeconds": 20.05,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947275614,
+            1790947285614
+          ],
+          "draws": 1205,
+          "refreshes": 301,
+          "appended": 3012,
+          "labels": 122890,
+          "taskSeconds": 6.77,
+          "heapBytes": 10804744
+        },
+        {
+          "elapsedSeconds": 30.06,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947285645,
+            1790947295645
+          ],
+          "draws": 1606,
+          "refreshes": 401,
+          "appended": 4012,
+          "labels": 163792,
+          "taskSeconds": 10.11,
+          "heapBytes": 11953196
+        },
+        {
+          "elapsedSeconds": 40.07,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947295645,
+            1790947305645
+          ],
+          "draws": 2006,
+          "refreshes": 501,
+          "appended": 5012,
+          "labels": 204584,
+          "taskSeconds": 13.62,
+          "heapBytes": 12090612
+        },
+        {
+          "elapsedSeconds": 50.09,
+          "counts": [
+            2002,
+            2002
+          ],
+          "range": [
+            1790947295645,
+            1790947305645
+          ],
+          "draws": 2107,
+          "refreshes": 601,
+          "appended": 6013,
+          "labels": 219886,
+          "taskSeconds": 16.06,
+          "heapBytes": 7843016
+        },
+        {
+          "elapsedSeconds": 60.13,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947315711,
+            1790947325711
+          ],
+          "draws": 2510,
+          "refreshes": 702,
+          "appended": 7022,
+          "labels": 261184,
+          "taskSeconds": 20.01,
+          "heapBytes": 17739752
+        },
+        {
+          "elapsedSeconds": 70.14,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947325711,
+            1790947335711
+          ],
+          "draws": 2909,
+          "refreshes": 802,
+          "appended": 8022,
+          "labels": 301882,
+          "taskSeconds": 23.69,
+          "heapBytes": 16647004
+        },
+        {
+          "elapsedSeconds": 80.14,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947335711,
+            1790947345711
+          ],
+          "draws": 3309,
+          "refreshes": 902,
+          "appended": 9022,
+          "labels": 342682,
+          "taskSeconds": 27.23,
+          "heapBytes": 16691868
+        },
+        {
+          "elapsedSeconds": 90.15,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947345712,
+            1790947355712
+          ],
+          "draws": 3709,
+          "refreshes": 1002,
+          "appended": 10022,
+          "labels": 383482,
+          "taskSeconds": 30.79,
+          "heapBytes": 16659800
+        },
+        {
+          "elapsedSeconds": 100.16,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947355712,
+            1790947365712
+          ],
+          "draws": 4109,
+          "refreshes": 1102,
+          "appended": 11022,
+          "labels": 424274,
+          "taskSeconds": 34.44,
+          "heapBytes": 16699468
+        },
+        {
+          "elapsedSeconds": 110.18,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947365748,
+            1790947375748
+          ],
+          "draws": 4510,
+          "refreshes": 1202,
+          "appended": 12022,
+          "labels": 465176,
+          "taskSeconds": 38.26,
+          "heapBytes": 17787232
+        },
+        {
+          "elapsedSeconds": 120.19,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947375748,
+            1790947385748
+          ],
+          "draws": 4910,
+          "refreshes": 1302,
+          "appended": 13022,
+          "labels": 505976,
+          "taskSeconds": 41.67,
+          "heapBytes": 17834320
+        }
+      ],
+      "summary": {
+        "mainThreadPercent": 34.67,
+        "drawsPerSecond": 37.49,
+        "lastFrameGapP95Ms": 37.1,
+        "gcHeapStartBytes": 5983656,
+        "gcHeapEndBytes": 6694272,
+        "finalCounts": [
+          1001,
+          1001
+        ],
+        "teardown": "passed"
+      }
+    },
+    {
+      "variant": "candidate",
+      "repetition": 1,
+      "durationSeconds": 120.24,
+      "samples": [
+        {
+          "elapsedSeconds": 10.04,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947396724,
+            1790947406724
+          ],
+          "draws": 805,
+          "refreshes": 201,
+          "appended": 2012,
+          "labels": 82106,
+          "taskSeconds": 3.26,
+          "heapBytes": 7159948
+        },
+        {
+          "elapsedSeconds": 20.05,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947406724,
+            1790947416724
+          ],
+          "draws": 1205,
+          "refreshes": 301,
+          "appended": 3012,
+          "labels": 122906,
+          "taskSeconds": 6.4,
+          "heapBytes": 29915284
+        },
+        {
+          "elapsedSeconds": 30.07,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947416761,
+            1790947426761
+          ],
+          "draws": 1606,
+          "refreshes": 401,
+          "appended": 4012,
+          "labels": 163808,
+          "taskSeconds": 9.68,
+          "heapBytes": 22874952
+        },
+        {
+          "elapsedSeconds": 40.08,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947426760,
+            1790947436760
+          ],
+          "draws": 2006,
+          "refreshes": 501,
+          "appended": 5012,
+          "labels": 204608,
+          "taskSeconds": 12.91,
+          "heapBytes": 6270844
+        },
+        {
+          "elapsedSeconds": 50.1,
+          "counts": [
+            2011,
+            2011
+          ],
+          "range": [
+            1790947426760,
+            1790947436760
+          ],
+          "draws": 2108,
+          "refreshes": 602,
+          "appended": 6023,
+          "labels": 220112,
+          "taskSeconds": 15.17,
+          "heapBytes": 23170700
+        },
+        {
+          "elapsedSeconds": 60.17,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947446857,
+            1790947456857
+          ],
+          "draws": 2510,
+          "refreshes": 702,
+          "appended": 7022,
+          "labels": 261416,
+          "taskSeconds": 18.38,
+          "heapBytes": 29015692
+        },
+        {
+          "elapsedSeconds": 70.17,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947456857,
+            1790947466857
+          ],
+          "draws": 2910,
+          "refreshes": 802,
+          "appended": 8022,
+          "labels": 302216,
+          "taskSeconds": 21.52,
+          "heapBytes": 29025256
+        },
+        {
+          "elapsedSeconds": 80.18,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947466857,
+            1790947476857
+          ],
+          "draws": 3310,
+          "refreshes": 902,
+          "appended": 9022,
+          "labels": 343016,
+          "taskSeconds": 24.66,
+          "heapBytes": 29058108
+        },
+        {
+          "elapsedSeconds": 90.19,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947476889,
+            1790947486889
+          ],
+          "draws": 3711,
+          "refreshes": 1002,
+          "appended": 10022,
+          "labels": 383918,
+          "taskSeconds": 27.84,
+          "heapBytes": 20021072
+        },
+        {
+          "elapsedSeconds": 100.2,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947486922,
+            1790947496922
+          ],
+          "draws": 4113,
+          "refreshes": 1103,
+          "appended": 11032,
+          "labels": 424922,
+          "taskSeconds": 31.12,
+          "heapBytes": 21993300
+        },
+        {
+          "elapsedSeconds": 110.24,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947496924,
+            1790947506924
+          ],
+          "draws": 4513,
+          "refreshes": 1203,
+          "appended": 12032,
+          "labels": 465722,
+          "taskSeconds": 34.41,
+          "heapBytes": 30152776
+        },
+        {
+          "elapsedSeconds": 120.24,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947506924,
+            1790947516924
+          ],
+          "draws": 4913,
+          "refreshes": 1303,
+          "appended": 13032,
+          "labels": 506522,
+          "taskSeconds": 37.62,
+          "heapBytes": 30176016
+        }
+      ],
+      "summary": {
+        "mainThreadPercent": 31.29,
+        "drawsPerSecond": 37.5,
+        "lastFrameGapP95Ms": 37.2,
+        "gcHeapStartBytes": 5631648,
+        "gcHeapEndBytes": 6756612,
+        "finalCounts": [
+          1001,
+          1001
+        ],
+        "teardown": "passed"
+      }
+    },
+    {
+      "variant": "candidate",
+      "repetition": 2,
+      "durationSeconds": 120.21,
+      "samples": [
+        {
+          "elapsedSeconds": 10.04,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947527882,
+            1790947537882
+          ],
+          "draws": 805,
+          "refreshes": 201,
+          "appended": 2012,
+          "labels": 82106,
+          "taskSeconds": 3.31,
+          "heapBytes": 29737204
+        },
+        {
+          "elapsedSeconds": 20.06,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947537877,
+            1790947547877
+          ],
+          "draws": 1205,
+          "refreshes": 301,
+          "appended": 3011,
+          "labels": 122906,
+          "taskSeconds": 6.58,
+          "heapBytes": 7299924
+        },
+        {
+          "elapsedSeconds": 30.06,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947547913,
+            1790947557913
+          ],
+          "draws": 1606,
+          "refreshes": 401,
+          "appended": 4012,
+          "labels": 163800,
+          "taskSeconds": 10.23,
+          "heapBytes": 7360264
+        },
+        {
+          "elapsedSeconds": 40.08,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947557913,
+            1790947567913
+          ],
+          "draws": 2006,
+          "refreshes": 501,
+          "appended": 5012,
+          "labels": 204600,
+          "taskSeconds": 13.75,
+          "heapBytes": 8479904
+        },
+        {
+          "elapsedSeconds": 50.11,
+          "counts": [
+            2010,
+            2010
+          ],
+          "range": [
+            1790947557913,
+            1790947567913
+          ],
+          "draws": 2108,
+          "refreshes": 602,
+          "appended": 6021,
+          "labels": 220058,
+          "taskSeconds": 16.04,
+          "heapBytes": 36358584
+        },
+        {
+          "elapsedSeconds": 60.15,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947578003,
+            1790947588003
+          ],
+          "draws": 2510,
+          "refreshes": 702,
+          "appended": 7022,
+          "labels": 261338,
+          "taskSeconds": 19.44,
+          "heapBytes": 23368208
+        },
+        {
+          "elapsedSeconds": 70.16,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947588003,
+            1790947598003
+          ],
+          "draws": 2910,
+          "refreshes": 802,
+          "appended": 8022,
+          "labels": 302138,
+          "taskSeconds": 22.79,
+          "heapBytes": 23513300
+        },
+        {
+          "elapsedSeconds": 80.17,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947598003,
+            1790947608003
+          ],
+          "draws": 3310,
+          "refreshes": 902,
+          "appended": 9022,
+          "labels": 342938,
+          "taskSeconds": 26.14,
+          "heapBytes": 23584260
+        },
+        {
+          "elapsedSeconds": 90.18,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947608003,
+            1790947618003
+          ],
+          "draws": 3710,
+          "refreshes": 1002,
+          "appended": 10021,
+          "labels": 383738,
+          "taskSeconds": 29.33,
+          "heapBytes": 23495280
+        },
+        {
+          "elapsedSeconds": 100.18,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947618004,
+            1790947628004
+          ],
+          "draws": 4110,
+          "refreshes": 1102,
+          "appended": 11022,
+          "labels": 424538,
+          "taskSeconds": 32.72,
+          "heapBytes": 23638552
+        },
+        {
+          "elapsedSeconds": 110.18,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947628003,
+            1790947638003
+          ],
+          "draws": 4510,
+          "refreshes": 1202,
+          "appended": 12021,
+          "labels": 465338,
+          "taskSeconds": 36.11,
+          "heapBytes": 7654952
+        },
+        {
+          "elapsedSeconds": 120.2,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947638034,
+            1790947648034
+          ],
+          "draws": 4912,
+          "refreshes": 1303,
+          "appended": 13031,
+          "labels": 506342,
+          "taskSeconds": 39.46,
+          "heapBytes": 9928348
+        }
+      ],
+      "summary": {
+        "mainThreadPercent": 32.83,
+        "drawsPerSecond": 37.5,
+        "lastFrameGapP95Ms": 37.2,
+        "gcHeapStartBytes": 5587088,
+        "gcHeapEndBytes": 6375784,
+        "finalCounts": [
+          1001,
+          1001
+        ],
+        "teardown": "passed"
+      }
+    },
+    {
+      "variant": "baseline",
+      "repetition": 2,
+      "durationSeconds": 120.21,
+      "samples": [
+        {
+          "elapsedSeconds": 10.01,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947658955,
+            1790947668955
+          ],
+          "draws": 804,
+          "refreshes": 201,
+          "appended": 2012,
+          "labels": 82004,
+          "taskSeconds": 3.59,
+          "heapBytes": 7400384
+        },
+        {
+          "elapsedSeconds": 20.04,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947668955,
+            1790947678955
+          ],
+          "draws": 1204,
+          "refreshes": 301,
+          "appended": 3012,
+          "labels": 122804,
+          "taskSeconds": 7.15,
+          "heapBytes": 17504432
+        },
+        {
+          "elapsedSeconds": 30.05,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947678992,
+            1790947688992
+          ],
+          "draws": 1605,
+          "refreshes": 401,
+          "appended": 4012,
+          "labels": 163706,
+          "taskSeconds": 10.53,
+          "heapBytes": 18660656
+        },
+        {
+          "elapsedSeconds": 40.06,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947688992,
+            1790947698992
+          ],
+          "draws": 2005,
+          "refreshes": 501,
+          "appended": 5012,
+          "labels": 204506,
+          "taskSeconds": 13.94,
+          "heapBytes": 18662796
+        },
+        {
+          "elapsedSeconds": 50.09,
+          "counts": [
+            2002,
+            2002
+          ],
+          "range": [
+            1790947688992,
+            1790947698992
+          ],
+          "draws": 2106,
+          "refreshes": 601,
+          "appended": 6013,
+          "labels": 219808,
+          "taskSeconds": 16.23,
+          "heapBytes": 12488476
+        },
+        {
+          "elapsedSeconds": 60.12,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947709076,
+            1790947719076
+          ],
+          "draws": 2509,
+          "refreshes": 702,
+          "appended": 7022,
+          "labels": 261114,
+          "taskSeconds": 19.64,
+          "heapBytes": 23764364
+        },
+        {
+          "elapsedSeconds": 70.14,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947719074,
+            1790947729074
+          ],
+          "draws": 2909,
+          "refreshes": 802,
+          "appended": 8022,
+          "labels": 301914,
+          "taskSeconds": 23.04,
+          "heapBytes": 29073252
+        },
+        {
+          "elapsedSeconds": 80.16,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947729101,
+            1790947739101
+          ],
+          "draws": 3310,
+          "refreshes": 902,
+          "appended": 9022,
+          "labels": 342816,
+          "taskSeconds": 26.4,
+          "heapBytes": 30204772
+        },
+        {
+          "elapsedSeconds": 90.17,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947739101,
+            1790947749101
+          ],
+          "draws": 3710,
+          "refreshes": 1002,
+          "appended": 10022,
+          "labels": 383616,
+          "taskSeconds": 29.83,
+          "heapBytes": 30182196
+        },
+        {
+          "elapsedSeconds": 100.18,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947749101,
+            1790947759101
+          ],
+          "draws": 4110,
+          "refreshes": 1102,
+          "appended": 11022,
+          "labels": 424416,
+          "taskSeconds": 33.13,
+          "heapBytes": 30166248
+        },
+        {
+          "elapsedSeconds": 110.19,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947759131,
+            1790947769131
+          ],
+          "draws": 4511,
+          "refreshes": 1202,
+          "appended": 12022,
+          "labels": 465318,
+          "taskSeconds": 36.68,
+          "heapBytes": 31269388
+        },
+        {
+          "elapsedSeconds": 120.21,
+          "counts": [
+            1001,
+            1001
+          ],
+          "range": [
+            1790947769131,
+            1790947779131
+          ],
+          "draws": 4911,
+          "refreshes": 1302,
+          "appended": 13022,
+          "labels": 506110,
+          "taskSeconds": 40.23,
+          "heapBytes": 31282792
+        }
+      ],
+      "summary": {
+        "mainThreadPercent": 33.47,
+        "drawsPerSecond": 37.51,
+        "lastFrameGapP95Ms": 42.1,
+        "gcHeapStartBytes": 5913176,
+        "gcHeapEndBytes": 6732456,
+        "finalCounts": [
+          1001,
+          1001
+        ],
+        "teardown": "passed"
+      }
+    }
+  ],
+  "visualPreflight": "pixel-identical"
+}

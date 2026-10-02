@@ -86,6 +86,12 @@ scrolling, expired-data cleanup, `update('quiet')`, tooltip values, pause/resume
 and timer/listener teardown. It is a smoke-test baseline, not full compatibility,
 performance, long-running, annotation/zoom, or installed JSLive acceptance.
 
+The additional [JSLive compatibility checks](docs/JSLIVE_COMPATIBILITY.md) use
+the current JSLive Moment/adapter/Datalabels versions. They run as part of
+`npm run verify`; Luxon coverage remains unchanged. An opt-in real-clock soak
+comparison loads the unchanged assets from a local JSLive checkout. Neither
+test path contacts Symcon or changes the application's templates or assets.
+
 ### Development documentation
 
 `npm run docs` builds one development site at `/chartjs-plugin-streaming/`.

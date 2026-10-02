@@ -4,6 +4,10 @@
 
 ### Added
 
+- JSLive compatibility coverage for Chart.js 4.5.1, Moment 2.31.0, its 1.0.1
+  adapter and Datalabels 2.2.0 in UTC/Berlin, plus an opt-in bounded real-time
+  comparison against the unchanged JSLive streaming 3.1.0 asset.
+
 - JSLive-style development versioning on `dev`, with `major.minor.0` package
   versions, source-derived build metadata and synchronized distribution bundles.
 - A controlled `dev`/`main` release process with manual, immutable tags/releases
